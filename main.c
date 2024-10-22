@@ -36,18 +36,18 @@ int kbhit(void)
 }
 
 int main(){
-	Jogador_t j = {.pos = (Posicao){INICIO_X,ALTURA-1}};
-	time_t t_inicio, t_atual;
-	Objeto_t projetil = {.qtd=0, .identificador='|'}, inimigo={.qtd=0,.identificador='H',.qtd_max=50, .raridade=10};
+	Jogador_t j = {.pos = (Posicao){INICIO_X,ALTURA-1}, .vida=5, .pontos=0};
+	time_t t_inicio, t_atual, t_total;
+	Objeto_t projetil = {.qtd=0, .identificador='|'}, inimigo={.qtd=0,.identificador='H',.qtd_max=10, .raridade=5};
 	Objeto_t*p_obj[QTD_OBJETOS] = {&projetil, &inimigo};
 	system ("/bin/stty raw");
 	char c;
-	int numero = -1, mover = 1, trava = 1;
+	int retorno1, retorno2, mover = 1, trava = 1;
 	long aleatorio;
 	
 	time(&t_inicio);
 	srand(time(NULL));
-	while(c != 'q'){
+	while(c != 'q' && j.vida>0){
 		time(&t_atual);
 		c=0;
 		if(kbhit()) c = getc(stdin);
@@ -65,20 +65,30 @@ int main(){
 		movimento(&j,c);
 		aleatorio = rand();
 		gerar_objeto(&inimigo, aleatorio);
-		if((numero = objeto_tocou_objeto(projetil, inimigo)) > -1) {
-			gotoxy(inimigo.pos[numero].x,inimigo.pos[numero].y);
+		if(objeto_tocou_objeto(projetil, inimigo,&retorno1,&retorno2)) {
+			gotoxy(inimigo.pos[retorno2].x,inimigo.pos[retorno2].y);
 			printf(" BOOOM\n");
-			destroi_objeto(&inimigo, numero);
+			destroi_objeto(&projetil, retorno1);
+			destroi_objeto(&inimigo, retorno2);
+            j.pontos++;
 		}
 		desenha_tela(j,p_obj);	
 		gotoxy(1, ALTURA+1);
-		printf("%ld\n", (t_atual%t_inicio));
-		usleep(.05*1000000);
+		printf("%ld\n", (t_total = t_atual%t_inicio));
+		        for(int i=0; i < inimigo.qtd; i++){
+            if(inimigo.pos[i].y==ALTURA-1){
+                j.vida--;
+			    destroi_objeto(&inimigo, i);
+            }
+        }
+        usleep(.05*1000000);
 		if(c == ' '){
 			projetil.qtd++;
 			projetil.pos[projetil.qtd-1] = j.pos;
 		};
-		}
+
+	}
 	system ("/bin/stty cooked");
+    tela_game_over(j,t_total);
 	return 0;
 }

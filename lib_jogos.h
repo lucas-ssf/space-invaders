@@ -18,4 +18,6 @@ void gerar_objeto(Objeto_t*o, long aleatorio);
 
 void tocou_objeto(Jogador_t*j, Objeto_t*o);
 
-int objeto_tocou_objeto(Objeto_t o1, Objeto_t o2);
+int objeto_tocou_objeto(Objeto_t o1, Objeto_t o2, int*retorno1, int*retorno2);
+
+void tela_game_over(Jogador_t j, long tempo);
